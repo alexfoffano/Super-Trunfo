@@ -155,8 +155,10 @@ class Game {
             });
         }
 
-        // Wait for UI to show the result overlay (e.g. 4 seconds)
-        setTimeout(() => {
+        // Wait for UI to show the result overlay, user will click "Continuar"
+        this.resolveContinue = () => {
+            this.resolveContinue = null; // clear it
+            
             // Remove top cards
             let cardsPlayed = [];
             this.players.forEach(p => {
@@ -199,7 +201,7 @@ class Game {
                 setTimeout(() => this.startTurn(), 1000);
                 
             }, 800); // 800ms for slide animation
-        }, 3500); // 3.5s for result overlay
+        };
     }
 
     nextPlayer() {

@@ -3,10 +3,10 @@ window.DECK_BRASILIDADES = {
     name: "Brasilidades",
     properties: [
         { key: 'price', label: 'Preço', unit: 'R$' },
-        { key: 'design', label: 'Design', unit: 'Pts' },
-        { key: 'utility', label: 'Utilidade', unit: 'Pts' },
-        { key: 'durability', label: 'Durabilidade', unit: 'Pts' },
-        { key: 'cultural', label: 'Impacto Cultural', unit: 'Pts' },
+        { key: 'design', label: 'Design', unit: '' },
+        { key: 'utility', label: 'Utilidade', unit: '' },
+        { key: 'durability', label: 'Durabilidade', unit: '' },
+        { key: 'cultural', label: 'Impacto Cultural', unit: '' },
         { key: 'icv', label: 'ICV (Casa de Vó)', unit: '%' }
     ],
     cards: [

@@ -21,9 +21,8 @@ class UI {
         this.currentPlayerName = document.getElementById('current-player-name');
         this.poolCount = document.getElementById('pool-count');
         this.poolIndicator = document.getElementById('pool-indicator');
-        this.p1CardCount = document.getElementById('p1-card-count');
         this.p1CardContainer = document.getElementById('p1-card-container');
-        this.opponentsContainer = document.getElementById('opponents-container');
+        this.playersContainer = document.getElementById('players-container');
         this.logList = document.getElementById('log-list');
         this.actionLog = document.getElementById('action-log');
 
@@ -31,6 +30,7 @@ class UI {
         this.resultOverlay = document.getElementById('round-result-overlay');
         this.resultWinner = document.getElementById('round-result-winner');
         this.resultList = document.getElementById('round-result-list');
+        this.btnContinue = document.getElementById('btn-continue');
 
         this.processingRound = false;
 
@@ -51,6 +51,14 @@ class UI {
 
         this.btnRestart.addEventListener('click', () => {
             this.showScreen(this.setupScreen);
+        });
+
+        this.btnContinue.addEventListener('click', () => {
+            this.resultOverlay.classList.remove('active');
+            setTimeout(() => this.resultOverlay.classList.add('hide'), 300);
+            if (this.game.resolveContinue) {
+                this.game.resolveContinue();
+            }
         });
 
         // Game hooks
@@ -83,7 +91,16 @@ class UI {
     updateTurn(playerIndex) {
         this.processingRound = false;
         const p = this.game.players[playerIndex];
-        this.currentPlayerName.textContent = p.name;
+        const turnTextEl = document.getElementById('turn-text');
+        
+        if (playerIndex === 0) {
+            turnTextEl.textContent = '';
+            this.currentPlayerName.textContent = 'Sua vez';
+        } else {
+            turnTextEl.textContent = 'Vez de ';
+            this.currentPlayerName.textContent = p.name;
+        }
+        
         this.updateGameState();
     }
 
@@ -96,11 +113,8 @@ class UI {
             this.poolIndicator.classList.add('hide');
         }
 
-        // User stats
-        const p1 = this.game.players[0];
-        this.p1CardCount.textContent = p1.deck.length;
-
         // Render card
+        const p1 = this.game.players[0];
         this.p1CardContainer.innerHTML = '';
         if (p1.deck.length > 0) {
             const isUserTurn = (this.game.currentPlayerIndex === 0);
@@ -113,26 +127,64 @@ class UI {
             this.p1CardContainer.innerHTML = '<div class="st-card back"><p>Sem Cartas</p></div>';
         }
 
-        // Render opponents
-        this.opponentsContainer.innerHTML = '';
-        this.game.players.forEach((player, idx) => {
-            if (idx === 0) return; // Skip user
-            
+        // Snapshot previous positions for FLIP
+        const oldPositions = {};
+        if (this.playersContainer.children.length > 0) {
+            Array.from(this.playersContainer.children).forEach(child => {
+                const id = child.getAttribute('data-id');
+                if (id !== null) {
+                    oldPositions[id] = child.getBoundingClientRect();
+                }
+            });
+        }
+
+        // Render players array
+        this.playersContainer.innerHTML = '';
+        const sortedPlayers = [...this.game.players].sort((a, b) => b.deck.length - a.deck.length);
+
+        sortedPlayers.forEach(player => {
             const div = document.createElement('div');
-            div.className = `opponent-stat glass-panel ${player.deck.length === 0 ? 'eliminated' : ''} ${this.game.currentPlayerIndex === idx ? 'highlight-box' : ''}`;
+            div.className = `player-stat glass-panel ${player.deck.length === 0 ? 'eliminated' : ''} ${this.game.currentPlayerIndex === player.id ? 'highlight-box' : ''}`;
+            div.setAttribute('data-id', player.id);
             
+            const isUser = (player.id === 0);
+            const color = isUser ? 'var(--secondary-color)' : 'white';
+
             // Add a slight glow if it's their turn
-            if(this.game.currentPlayerIndex === idx) {
-                div.style.boxShadow = '0 0 15px var(--secondary-color)';
+            if(this.game.currentPlayerIndex === player.id) {
+                div.style.boxShadow = `0 0 15px ${color}`;
             } else {
                 div.style.boxShadow = 'none';
             }
 
             div.innerHTML = `
-                <h4>${player.name}</h4>
+                <h4 style="color: ${color};">${isUser ? 'Você' : player.name}</h4>
                 <span><span class="card-counter">${player.deck.length}</span> Cartas</span>
             `;
-            this.opponentsContainer.appendChild(div);
+            this.playersContainer.appendChild(div);
+        });
+
+        // 2. Play FLIP animation
+        requestAnimationFrame(() => {
+            Array.from(this.playersContainer.children).forEach(child => {
+                const id = child.getAttribute('data-id');
+                const oldPos = oldPositions[id];
+                if (oldPos) {
+                    const newPos = child.getBoundingClientRect();
+                    const deltaX = oldPos.left - newPos.left;
+                    const deltaY = oldPos.top - newPos.top;
+                    
+                    if (deltaX !== 0 || deltaY !== 0) {
+                        child.style.transition = 'none';
+                        child.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+                        
+                        requestAnimationFrame(() => {
+                            child.style.transition = 'transform 0.5s ease, box-shadow 0.3s ease';
+                            child.style.transform = 'translate(0, 0)';
+                        });
+                    }
+                }
+            });
         });
     }
 
@@ -224,11 +276,14 @@ class UI {
             if (entry.card.superTrunfo) valText += ' (ST)';
             else if (entry.card.category.endsWith('-A') && isST) valText += ' (-A)';
 
+            const isUser = (entry.playerIndex === 0);
+            const nameColor = isUser ? 'var(--secondary-color)' : 'white';
+
             div.innerHTML = `
                 <div style="display:flex; align-items:center; gap: 15px;">
                     <img src="${entry.card.image}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" style="width: 40px; height: 40px; object-fit: cover; border-radius: 8px; flex-shrink: 0; background: #333;">
                     <div style="display: none; width: 40px; height: 40px; border-radius: 8px; flex-shrink: 0; background: rgba(255,255,255,0.1); align-items: center; justify-content: center; font-size: 1.2rem;">${entry.card.superTrunfo ? '⚡' : '😀'}</div>
-                    <span class="result-item-name" style="margin: 0;">${player.name} <br><small style="font-weight:normal;color:#ccc">${entry.card.name} (${entry.card.category})</small></span>
+                    <span class="result-item-name" style="margin: 0; color: ${nameColor};">${isUser ? 'Você' : player.name} <br><small style="font-weight:normal;color:#ccc">${entry.card.name} (${entry.card.category})</small></span>
                 </div>
                 <span class="result-item-value" style="display:flex; align-items:center;">${valText}</span>
             `;
@@ -240,17 +295,12 @@ class UI {
             this.resultWinner.style.color = 'var(--error-color)';
         } else {
             const activeName = this.game.players[activePlayerIndex].name;
-            this.resultWinner.textContent = `${activeName} selecionou ${propData.label}`;
+            this.resultWinner.innerHTML = `<span style="color: white; font-weight: normal;">${activeName} selecionou</span> ${propData.label}`;
             this.resultWinner.style.color = 'var(--secondary-color)';
         }
 
         this.resultOverlay.classList.remove('hide');
         setTimeout(() => this.resultOverlay.classList.add('active'), 50);
-        
-        setTimeout(() => {
-            this.resultOverlay.classList.remove('active');
-            setTimeout(() => this.resultOverlay.classList.add('hide'), 300);
-        }, 3000); // hide slightly before animation fires
     }
 
     animateCardTransfer(won, isTie) {
