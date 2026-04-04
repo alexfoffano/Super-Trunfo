@@ -38,7 +38,11 @@ body {
 }
 
 /* Typography base */
-h1, h2, h3, .glitch, .primary-btn {
+h1,
+h2,
+h3,
+.glitch,
+.primary-btn {
     font-family: 'Orbitron', sans-serif;
 }
 
@@ -110,24 +114,48 @@ h1 {
 }
 
 @keyframes slideUpAnim {
-    0% { transform: translateY(0); opacity: 1; }
-    100% { transform: translateY(-200px); opacity: 0; }
+    0% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(-200px);
+        opacity: 0;
+    }
 }
 
 @keyframes slideDownAnim {
-    0% { transform: translateY(0); opacity: 1; }
-    100% { transform: translateY(200px); opacity: 0; }
+    0% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(200px);
+        opacity: 0;
+    }
 }
 
 @keyframes slideRightAnim {
-    0% { transform: translateX(0); opacity: 1; }
-    100% { transform: translateX(400px); opacity: 0; }
+    0% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateX(400px);
+        opacity: 0;
+    }
 }
 
 /* Result Overlay */
 .overlay {
     position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     background: rgba(0, 0, 0, 0.85);
     z-index: 100;
     display: flex;
@@ -163,7 +191,7 @@ h1 {
 .result-item {
     display: flex;
     justify-content: space-between;
-    background: rgba(255,255,255,0.05);
+    background: rgba(255, 255, 255, 0.05);
     padding: 10px 15px;
     border-radius: 8px;
     border-left: 4px solid var(--primary-color);
@@ -171,12 +199,12 @@ h1 {
 
 .result-item.winner-item {
     border-left-color: var(--super-trunfo-color);
-    background: rgba(255,152,0,0.1);
+    background: rgba(255, 152, 0, 0.1);
 }
 
 .result-item.tie-item {
     border-left-color: var(--error-color);
-    background: rgba(255,82,82,0.1);
+    background: rgba(255, 82, 82, 0.1);
 }
 
 .result-item-name {
@@ -219,9 +247,11 @@ h1 {
     0% {
         box-shadow: 0 0 0 0 rgba(102, 252, 241, 0.7);
     }
+
     70% {
         box-shadow: 0 0 0 15px rgba(102, 252, 241, 0);
     }
+
     100% {
         box-shadow: 0 0 0 0 rgba(102, 252, 241, 0);
     }
@@ -247,7 +277,8 @@ h1 {
     color: var(--secondary-color);
 }
 
-.form-group input, .form-group select {
+.form-group input,
+.form-group select {
     padding: 10px;
     background: rgba(31, 40, 51, 0.5);
     border: 1px solid var(--primary-color);
@@ -322,8 +353,13 @@ h1 {
 }
 
 @keyframes flash {
-    from { text-shadow: 0 0 5px var(--super-trunfo-color); }
-    to { text-shadow: 0 0 20px var(--super-trunfo-color); }
+    from {
+        text-shadow: 0 0 5px var(--super-trunfo-color);
+    }
+
+    to {
+        text-shadow: 0 0 20px var(--super-trunfo-color);
+    }
 }
 
 .log-panel {
@@ -343,7 +379,7 @@ h1 {
 }
 
 .log-panel li {
-    border-bottom: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     padding-bottom: 5px;
 }
 
@@ -365,7 +401,7 @@ h1 {
     background: var(--card-bg);
     border: 2px solid var(--primary-color);
     border-radius: 15px;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -397,7 +433,7 @@ h1 {
 
 .st-card.back:hover {
     transform: none;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
 }
 
 .card-header {
@@ -405,7 +441,7 @@ h1 {
     justify-content: space-between;
     align-items: center;
     padding: 10px 15px;
-    background: rgba(0,0,0,0.3);
+    background: rgba(0, 0, 0, 0.3);
     border-bottom: 1px solid var(--primary-color);
 }
 
@@ -456,7 +492,7 @@ h1 {
     justify-content: space-between;
     padding: 8px 10px;
     margin-bottom: 5px;
-    background: rgba(255,255,255,0.05);
+    background: rgba(255, 255, 255, 0.05);
     border-radius: 4px;
     transition: background 0.2s;
 }
@@ -498,7 +534,7 @@ h1 {
     content: "ST";
     font-family: 'Orbitron', sans-serif;
     font-size: 5rem;
-    color: rgba(255,255,255,0.1);
+    color: rgba(255, 255, 255, 0.1);
 }
 
 /* Players mini cards */
@@ -522,7 +558,7 @@ h1 {
 }
 
 .player-stat .card-counter {
-    background: rgba(0,0,0,0.5);
+    background: rgba(0, 0, 0, 0.5);
     padding: 5px 10px;
     border-radius: 10px;
     font-family: monospace;
@@ -534,13 +570,35 @@ h1 {
     .game-area {
         flex-direction: column;
     }
-    
+
     h1 {
         font-size: 3rem;
     }
-    
+
     .card-container {
         width: 100%;
         max-width: 300px;
+    }
+
+    .result-panel {
+        padding: 1rem !important;
+    }
+
+    .result-item-value {
+        font-size: 0.75rem;
+    }
+
+    .result-item-name {
+        max-width: 150px;
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .result-item-name small {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 }

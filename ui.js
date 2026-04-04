@@ -283,9 +283,14 @@ class UI {
             
             div.className = `result-item ${isWinner ? 'winner-item' : ''} ${isTied ? 'tie-item' : ''}`;
             
-            let valText = this.formatPropValue(entry.card.properties[propertyKey], propData);
-            if (entry.card.superTrunfo) valText += ' (ST)';
-            else if (entry.card.category.endsWith('-A') && isST) valText += ' (-A)';
+            let valText;
+            if (entry.card.superTrunfo) {
+                valText = 'SUPER';
+            } else if (entry.card.category.endsWith('-A') && isST) {
+                valText = 'A';
+            } else {
+                valText = this.formatPropValue(entry.card.properties[propertyKey], propData);
+            }
 
             const isUser = (entry.playerIndex === 0);
             const nameColor = isUser ? 'var(--secondary-color)' : 'white';
