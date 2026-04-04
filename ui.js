@@ -1,7 +1,7 @@
 class UI {
     constructor(game) {
         this.game = game;
-        
+
         // Screens
         this.titleScreen = document.getElementById('title-screen');
         this.setupScreen = document.getElementById('setup-screen');
@@ -12,7 +12,7 @@ class UI {
         this.btnPlay = document.getElementById('btn-play');
         this.btnStart = document.getElementById('btn-start');
         this.btnRestart = document.getElementById('btn-restart');
-        
+
         // Form
         this.playerCount = document.getElementById('player-count');
         this.deckSelect = document.getElementById('deck-select');
@@ -39,11 +39,11 @@ class UI {
 
     bindEvents() {
         this.btnPlay.addEventListener('click', () => this.showScreen(this.setupScreen));
-        
+
         this.btnStart.addEventListener('click', () => {
             let count = parseInt(this.playerCount.value);
             let deckKey = this.deckSelect.value;
-            if(count < 2 || count > 8) count = 2;
+            if (count < 2 || count > 8) count = 2;
             this.showScreen(this.gameScreen);
             this.logList.innerHTML = '';
             this.game.init(count, deckKey);
@@ -82,8 +82,8 @@ class UI {
     addLog(msg, type) {
         const li = document.createElement('li');
         li.textContent = msg;
-        if(type === 'st') li.style.color = 'var(--super-trunfo-color)';
-        if(type === 'tie') li.style.color = 'var(--error-color)';
+        if (type === 'st') li.style.color = 'var(--super-trunfo-color)';
+        if (type === 'tie') li.style.color = 'var(--error-color)';
         this.logList.appendChild(li);
         this.actionLog.scrollTop = this.actionLog.scrollHeight;
     }
@@ -92,7 +92,7 @@ class UI {
         this.processingRound = false;
         const p = this.game.players[playerIndex];
         const turnTextEl = document.getElementById('turn-text');
-        
+
         if (playerIndex === 0) {
             turnTextEl.textContent = '';
             this.currentPlayerName.textContent = 'Sua vez';
@@ -100,7 +100,7 @@ class UI {
             turnTextEl.textContent = 'Vez de ';
             this.currentPlayerName.textContent = p.name;
         }
-        
+
         this.updateGameState();
     }
 
@@ -146,12 +146,12 @@ class UI {
             const div = document.createElement('div');
             div.className = `player-stat glass-panel ${player.deck.length === 0 ? 'eliminated' : ''} ${this.game.currentPlayerIndex === player.id ? 'highlight-box' : ''}`;
             div.setAttribute('data-id', player.id);
-            
+
             const isUser = (player.id === 0);
             const color = isUser ? 'var(--secondary-color)' : 'white';
 
             // Add a slight glow if it's their turn
-            if(this.game.currentPlayerIndex === player.id) {
+            if (this.game.currentPlayerIndex === player.id) {
                 div.style.boxShadow = `0 0 15px ${color}`;
             } else {
                 div.style.boxShadow = 'none';
@@ -173,11 +173,11 @@ class UI {
                     const newPos = child.getBoundingClientRect();
                     const deltaX = oldPos.left - newPos.left;
                     const deltaY = oldPos.top - newPos.top;
-                    
+
                     if (deltaX !== 0 || deltaY !== 0) {
                         child.style.transition = 'none';
                         child.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
-                        
+
                         requestAnimationFrame(() => {
                             child.style.transition = 'transform 0.5s ease, box-shadow 0.3s ease';
                             child.style.transform = 'translate(0, 0)';
@@ -189,20 +189,20 @@ class UI {
     }
 
     formatPropValue(value, propDef) {
-        let formattedValue = (propDef.decimal !== undefined && propDef.decimal > 0) 
-            ? value.toFixed(propDef.decimal) 
+        let formattedValue = (propDef.decimal !== undefined && propDef.decimal > 0)
+            ? value.toFixed(propDef.decimal)
             : value;
-        
+
         const prefix = propDef.prefix || '';
         const suffix = propDef.suffix || '';
-        
+
         return `${prefix} ${formattedValue} ${suffix}`.trim().replace(/\s+/g, ' ');
     }
 
     createCardElement(card, interactive) {
         const div = document.createElement('div');
         div.className = `st-card ${card.superTrunfo ? 'super-trunfo' : ''}`;
-        
+
         let propsHtml = '';
         this.game.activeDeck.properties.forEach(p => {
             propsHtml += `
@@ -219,7 +219,7 @@ class UI {
                 <span class="card-category">${card.category}</span>
             </div>
             <div class="card-image">
-                <img src="${card.image}" onerror="this.onerror=null; this.outerHTML='${card.superTrunfo ? '⚡ SUPER TRUNFO!' : '😀 Imagem'}'" style="width:100%;height:100%;object-fit:cover;border-radius:4px;">
+                <img src="${card.image}" onerror="this.onerror=null; this.outerHTML='<span>${card.superTrunfo ? '⚡ SUPER TRUNFO!' : '😀 Imagem'}</span>'">
             </div>
             <div class="card-body">
                 ${propsHtml}
@@ -230,16 +230,16 @@ class UI {
             const attrs = div.querySelectorAll('.selectable');
             attrs.forEach(attr => {
                 attr.addEventListener('click', (e) => {
-                    if(this.game.currentPlayerIndex !== 0 || !this.game.isRunning || this.processingRound) return;
-                    
+                    if (this.game.currentPlayerIndex !== 0 || !this.game.isRunning || this.processingRound) return;
+
                     this.processingRound = true;
                     const clickedEl = e.currentTarget;
                     clickedEl.classList.add('selected');
-                    
+
                     const key = clickedEl.getAttribute('data-key');
                     const label = this.game.activeDeck.properties.find(pr => pr.key === key).label;
                     this.game.log(`Você escolheu a característica: ${label}`);
-                    
+
                     // Small delay to allow visual feedback
                     setTimeout(() => {
                         this.game.playTurn(key);
@@ -255,34 +255,34 @@ class UI {
         this.showScreen(this.endScreen);
         const nameEl = document.getElementById('winner-name');
         const msgEl = document.getElementById('winner-msg');
-        
+
         nameEl.textContent = winner.id === 0 ? 'VITÓRIA!' : 'DERROTA!';
         nameEl.style.color = winner.id === 0 ? 'var(--secondary-color)' : 'var(--error-color)';
         nameEl.style.textShadow = `0 0 10px ${winner.id === 0 ? 'var(--secondary-color)' : 'var(--error-color)'}`;
-        
-        msgEl.textContent = winner.id === 0 ? 'Você venceu o jogo de Super Trunfo!' : `${winner.name} dominou o jogo!`;
+
+        msgEl.textContent = winner.id === 0 ? 'Você venceu o jogo!' : `${winner.name} dominou o jogo!`;
     }
 
     showRoundResult(data) {
         const { cards, propertyKey, winnerIndex, activePlayerIndex, tiedPlayers, isTie, isST } = data;
         const propData = this.game.activeDeck.properties.find(p => p.key === propertyKey);
-        
+
         // Sort descending
         // If speed is 0 to 100, we might want ascending, but user said price and all descending.
         let sorted = [...cards].sort((a, b) => b.card.properties[propertyKey] - a.card.properties[propertyKey]);
-        
+
         // If ST is involved, ST or -A is the real winner functionally, but visually we can just add a badge or leave the values as they are.
-        
+
         this.resultList.innerHTML = '';
         sorted.forEach(entry => {
             const player = this.game.players[entry.playerIndex];
             const div = document.createElement('div');
-            
+
             const isWinner = (entry.playerIndex === winnerIndex && !isTie);
             const isTied = (isTie && tiedPlayers.includes(entry.playerIndex));
-            
+
             div.className = `result-item ${isWinner ? 'winner-item' : ''} ${isTied ? 'tie-item' : ''}`;
-            
+
             let valText;
             if (entry.card.superTrunfo) {
                 valText = 'SUPER';
@@ -322,7 +322,7 @@ class UI {
     animateCardTransfer(won, isTie) {
         if (!this.p1CardContainer.firstElementChild) return;
         const cardEl = this.p1CardContainer.firstElementChild;
-        
+
         if (isTie) {
             cardEl.classList.add('slide-right');
         } else if (!won) {
