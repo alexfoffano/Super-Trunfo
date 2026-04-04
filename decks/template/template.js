@@ -2,12 +2,12 @@
 window.DECK_TEMPLATE = {
     name: "Novo Baralho",
     properties: [
-        { key: 'attr1', label: 'Atributo 1', unit: 'un' },
-        { key: 'attr2', label: 'Atributo 2', unit: 'pts' },
-        { key: 'attr3', label: 'Atributo 3', unit: 'kg' },
-        { key: 'attr4', label: 'Atributo 4', unit: '' },
-        { key: 'attr5', label: 'Atributo 5', unit: 'cm' },
-        { key: 'attr6', label: 'Atributo 6', unit: '%' }
+        { key: 'attr1', label: 'Atributo 1', prefix: '', suffix: 'un', decimal: 0 },
+        { key: 'attr2', label: 'Atributo 2', prefix: '', suffix: 'pts', decimal: 0 },
+        { key: 'attr3', label: 'Atributo 3', prefix: '', suffix: 'kg', decimal: 0 },
+        { key: 'attr4', label: 'Atributo 4', prefix: '', suffix: '', decimal: 0 },
+        { key: 'attr5', label: 'Atributo 5', prefix: '', suffix: 'cm', decimal: 0 },
+        { key: 'attr6', label: 'Atributo 6', prefix: '', suffix: '%', decimal: 0 }
     ],
     cards: [
         {

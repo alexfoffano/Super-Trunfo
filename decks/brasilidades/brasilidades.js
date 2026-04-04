@@ -2,12 +2,12 @@
 window.DECK_BRASILIDADES = {
     name: "Brasilidades",
     properties: [
-        { key: 'price', label: 'Preço', unit: 'R$' },
-        { key: 'design', label: 'Design', unit: '' },
-        { key: 'utility', label: 'Utilidade', unit: '' },
-        { key: 'durability', label: 'Durabilidade', unit: '' },
-        { key: 'cultural', label: 'Impacto Cultural', unit: '' },
-        { key: 'icv', label: 'ICV (Casa de Vó)', unit: '%' }
+        { key: 'price', label: 'Preço', prefix: 'R$', suffix: '', decimal: 2 },
+        { key: 'design', label: 'Design', prefix: '', suffix: 'Pts', decimal: 0 },
+        { key: 'utility', label: 'Utilidade', prefix: '', suffix: 'Pts', decimal: 0 },
+        { key: 'durability', label: 'Durabilidade', prefix: '', suffix: 'Pts', decimal: 0 },
+        { key: 'cultural', label: 'Impacto Cultural', prefix: '', suffix: 'Pts', decimal: 0 },
+        { key: 'icv', label: 'ICV (Casa de Vó)', prefix: '', suffix: '%', decimal: 0 }
     ],
     cards: [
         { id: "1-A", name: "Jarra de Abacaxi", category: "1-A", superTrunfo: false, properties: { price: 24.90, design: 32, utility: 94, durability: 88, cultural: 74, icv: 86 } },

@@ -2,12 +2,12 @@
 window.DECK_CARS = {
     name: "Carros",
     properties: [
-        { key: 'speed', label: 'Velocidade', unit: 'km/h' },
-        { key: 'hp', label: 'Potência', unit: 'HP' },
-        { key: 'price', label: 'Preço', unit: 'R$' },
-        { key: 'year', label: 'Ano de Lanc.', unit: '' },
-        { key: 'cultural', label: 'Valor Cultural', unit: 'Pts' },
-        { key: 'weight', label: 'Peso', unit: 'kg' }
+        { key: 'speed', label: 'Velocidade', prefix: '', suffix: 'km/h', decimal: 0 },
+        { key: 'hp', label: 'Potência', prefix: '', suffix: 'HP', decimal: 0 },
+        { key: 'price', label: 'Preço', prefix: 'R$', suffix: '', decimal: 2 },
+        { key: 'year', label: 'Ano de Lanc.', prefix: '', suffix: '', decimal: 0 },
+        { key: 'cultural', label: 'Valor Cultural', prefix: '', suffix: 'Pts', decimal: 0 },
+        { key: 'weight', label: 'Peso', prefix: '', suffix: 'kg', decimal: 0 }
     ],
     cards: [
         {

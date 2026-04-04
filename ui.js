@@ -188,6 +188,17 @@ class UI {
         });
     }
 
+    formatPropValue(value, propDef) {
+        let formattedValue = (propDef.decimal !== undefined && propDef.decimal > 0) 
+            ? value.toFixed(propDef.decimal) 
+            : value;
+        
+        const prefix = propDef.prefix || '';
+        const suffix = propDef.suffix || '';
+        
+        return `${prefix} ${formattedValue} ${suffix}`.trim().replace(/\s+/g, ' ');
+    }
+
     createCardElement(card, interactive) {
         const div = document.createElement('div');
         div.className = `st-card ${card.superTrunfo ? 'super-trunfo' : ''}`;
@@ -197,7 +208,7 @@ class UI {
             propsHtml += `
                 <div class="card-attr ${interactive ? 'selectable' : ''}" data-key="${p.key}">
                     <span class="attr-name">${p.label}</span>
-                    <span class="attr-value">${card.properties[p.key]} ${p.unit}</span>
+                    <span class="attr-value">${this.formatPropValue(card.properties[p.key], p)}</span>
                 </div>
             `;
         });
@@ -272,7 +283,7 @@ class UI {
             
             div.className = `result-item ${isWinner ? 'winner-item' : ''} ${isTied ? 'tie-item' : ''}`;
             
-            let valText = `${entry.card.properties[propertyKey]} ${propData.unit}`;
+            let valText = this.formatPropValue(entry.card.properties[propertyKey], propData);
             if (entry.card.superTrunfo) valText += ' (ST)';
             else if (entry.card.category.endsWith('-A') && isST) valText += ' (-A)';
 

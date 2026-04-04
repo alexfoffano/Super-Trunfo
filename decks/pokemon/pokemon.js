@@ -2,12 +2,12 @@
 window.DECK_POKEMON = {
     name: "Pokémon",
     properties: [
-        { key: 'atq', label: 'Ataque', unit: '' },
-        { key: 'def', label: 'Defesa', unit: '' },
-        { key: 'vel', label: 'Velocidade', unit: '' },
-        { key: 'alt', label: 'Altura', unit: 'm' },
-        { key: 'pes', label: 'Peso', unit: 'kg' },
-        { key: 'pop', label: 'Popularidade', unit: 'pts' }
+        { key: 'atq', label: 'Ataque', prefix: '', suffix: 'pts', decimal: 0 },
+        { key: 'def', label: 'Defesa', prefix: '', suffix: 'pts', decimal: 0 },
+        { key: 'vel', label: 'Velocidade', prefix: '', suffix: 'pts', decimal: 0 },
+        { key: 'alt', label: 'Altura', prefix: '', suffix: 'm', decimal: 1 },
+        { key: 'pes', label: 'Peso', prefix: '', suffix: 'kg', decimal: 1 },
+        { key: 'pop', label: 'Popularidade', prefix: '', suffix: 'pts', decimal: 0 }
     ],
     cards: [
         {
