@@ -132,10 +132,16 @@ class UI {
         });
 
         this.btnContinue.addEventListener('click', () => {
-            this.resultOverlay.classList.remove('active');
-            setTimeout(() => this.resultOverlay.classList.add('hide'), 300);
-            if (this.game.resolveContinue) {
-                this.game.resolveContinue();
+            if (this.game.isMultiplayer) {
+                this.btnContinue.disabled = true;
+                if (this.game.resolveContinue) {
+                    this.game.resolveContinue();
+                }
+            } else {
+                this.hideResultOverlay();
+                if (this.game.resolveContinue) {
+                    this.game.resolveContinue();
+                }
             }
         });
 
@@ -146,6 +152,13 @@ class UI {
         this.game.onGameOver = (winner) => this.showEndScreen(winner);
         this.game.onRoundResult = (data) => this.showRoundResult(data);
         this.game.onCardTransfer = (won, isTie) => this.animateCardTransfer(won, isTie);
+    }
+
+    hideResultOverlay() {
+        if (!this.resultOverlay.classList.contains('hide')) {
+            this.resultOverlay.classList.remove('active');
+            setTimeout(() => this.resultOverlay.classList.add('hide'), 300);
+        }
     }
 
     showScreen(screenObj) {
@@ -197,6 +210,34 @@ class UI {
                 this.logList.innerHTML = '';
             }
             this.game.syncNetwork(data);
+            
+            // Check ready state and update button if overlay is active
+            if (!this.resultOverlay.classList.contains('hide') && data.game) {
+                let readyCount = 0;
+                let totalHumans = 0;
+                
+                Object.keys(data.players || {}).forEach(key => {
+                    const p = data.players[key];
+                    if (p && !p.isBot && p.connected) {
+                        totalHumans++;
+                        if (data.game.readyNext && data.game.readyNext[key]) {
+                            readyCount++;
+                        }
+                    }
+                });
+                
+                if (totalHumans > 0) {
+                    if (this.btnContinue.disabled) {
+                        this.btnContinue.textContent = `Aguardando (${readyCount}/${totalHumans})`;
+                    } else {
+                        // User hasn't clicked yet, we can optionally show how many others clicked
+                        this.btnContinue.textContent = `Continuar (${readyCount}/${totalHumans})`;
+                    }
+                    if (readyCount === totalHumans) {
+                         this.hideResultOverlay();
+                    }
+                }
+            }
         }
     }
 
@@ -441,6 +482,15 @@ class UI {
             const activeName = this.game.players[activePlayerIndex].name;
             this.resultWinner.innerHTML = `<span style="color: white; font-weight: normal;">${activeName} selecionou</span> ${propData.label}`;
             this.resultWinner.style.color = 'var(--secondary-color)';
+        }
+
+        this.btnContinue.disabled = false;
+        if (this.game.isMultiplayer) {
+            // Count total active humans to initialize the counter
+            let totalHumans = this.game.players.filter(p => !p.isBot).length; // initial estimate
+            this.btnContinue.textContent = `Continuar (0/${totalHumans})`;
+        } else {
+            this.btnContinue.textContent = "Continuar";
         }
 
         this.resultOverlay.classList.remove('hide');
