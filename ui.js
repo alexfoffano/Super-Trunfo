@@ -5,17 +5,35 @@ class UI {
         // Screens
         this.titleScreen = document.getElementById('title-screen');
         this.setupScreen = document.getElementById('setup-screen');
+        this.lobbyScreen = document.getElementById('lobby-screen');
+        this.joinScreen = document.getElementById('join-screen');
         this.gameScreen = document.getElementById('game-screen');
         this.endScreen = document.getElementById('end-screen');
 
         // Buttons
         this.btnPlay = document.getElementById('btn-play');
-        this.btnStart = document.getElementById('btn-start');
+        this.btnStartSetup = document.getElementById('btn-start-setup');
+        this.btnStartMultiplayer = document.getElementById('btn-start-multiplayer');
+        this.btnCopyLink = document.getElementById('btn-copy-link');
+        this.btnJoinRoom = document.getElementById('btn-join-room');
         this.btnRestart = document.getElementById('btn-restart');
 
         // Form
-        this.playerCount = document.getElementById('player-count');
+        this.playerName = document.getElementById('player-name');
+        this.humanCount = document.getElementById('human-count');
+        this.botCount = document.getElementById('bot-count');
+        this.humanVal = document.getElementById('human-val');
+        this.botVal = document.getElementById('bot-val');
         this.deckSelect = document.getElementById('deck-select');
+
+        // Join
+        this.joinName = document.getElementById('join-name');
+
+        // Lobby
+        this.inviteLink = document.getElementById('invite-link');
+        this.lobbyCount = document.getElementById('lobby-count');
+        this.lobbyTotal = document.getElementById('lobby-total');
+        this.lobbyPlayersList = document.getElementById('lobby-players-list');
 
         // Game Elements
         this.currentPlayerName = document.getElementById('current-player-name');
@@ -38,16 +56,76 @@ class UI {
     }
 
     bindEvents() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomToJoin = urlParams.get('room');
+        
+        if (roomToJoin) {
+            this.titleScreen.classList.remove('active');
+            this.titleScreen.classList.add('hide');
+            this.showScreen(this.joinScreen);
+            
+            this.btnJoinRoom.addEventListener('click', () => {
+                const name = this.joinName.value.trim() || "Convidado";
+                this.btnJoinRoom.disabled = true;
+                Network.joinRoom(roomToJoin, name, () => {
+                    this.showScreen(this.lobbyScreen);
+                }, (err) => { 
+                    alert(err); 
+                    this.btnJoinRoom.disabled = false;
+                    window.location.href = window.location.pathname; // clear url
+                });
+            });
+        }
+
         this.btnPlay.addEventListener('click', () => this.showScreen(this.setupScreen));
 
-        this.btnStart.addEventListener('click', () => {
-            let count = parseInt(this.playerCount.value);
-            let deckKey = this.deckSelect.value;
-            if (count < 2 || count > 8) count = 2;
-            this.showScreen(this.gameScreen);
-            this.logList.innerHTML = '';
-            this.game.init(count, deckKey);
+        this.humanCount.addEventListener('input', (e) => this.humanVal.textContent = e.target.value);
+        this.botCount.addEventListener('input', (e) => this.botVal.textContent = e.target.value);
+
+        this.btnStartSetup.addEventListener('click', () => {
+            const h = parseInt(this.humanCount.value);
+            const b = parseInt(this.botCount.value);
+            const total = h + b;
+            
+            if (total < 2 || total > 8) {
+                alert("O total de jogadores (Humanos + Bots) deve ser entre 2 e 8.");
+                return;
+            }
+            
+            const config = {
+                hostName: this.playerName.value.trim() || 'Você',
+                humans: h,
+                bots: b,
+                deckKey: this.deckSelect.value
+            };
+            
+            if (h === 1) {
+                // Singleplayer Local (no room created)
+                this.showScreen(this.gameScreen);
+                this.logList.innerHTML = '';
+                this.game.initLocal(config);
+            } else {
+                // Multiplayer
+                this.btnStartSetup.disabled = true;
+                Network.createRoom(config, (roomId) => {
+                    this.inviteLink.value = window.location.origin + window.location.pathname + "?room=" + roomId;
+                    this.showScreen(this.lobbyScreen);
+                });
+            }
         });
+        
+        this.btnCopyLink.addEventListener('click', () => {
+            this.inviteLink.select();
+            document.execCommand('copy');
+            alert("Link copiado!");
+        });
+        
+        this.btnStartMultiplayer.addEventListener('click', () => {
+            this.game.initHostMultiplayer();
+        });
+
+        // Network UI hooks
+        window.onNetworkUpdate = (data) => this.handleNetworkState(data);
 
         this.btnRestart.addEventListener('click', () => {
             this.showScreen(this.setupScreen);
@@ -71,12 +149,55 @@ class UI {
     }
 
     showScreen(screenObj) {
-        [this.titleScreen, this.setupScreen, this.gameScreen, this.endScreen].forEach(s => {
+        [this.titleScreen, this.setupScreen, this.lobbyScreen, this.joinScreen, this.gameScreen, this.endScreen].forEach(s => {
             s.classList.remove('active');
             s.classList.add('hide');
         });
         screenObj.classList.remove('hide');
         setTimeout(() => screenObj.classList.add('active'), 100);
+    }
+    
+    handleNetworkState(data) {
+        if (data.state === 'lobby') {
+            let joinedCount = 0;
+            this.lobbyPlayersList.innerHTML = '';
+            let allReady = true;
+
+            for (let i = 0; i < data.config.humans; i++) {
+                const p = data.players[i];
+                const li = document.createElement('li');
+                li.style.padding = "5px 0";
+                li.style.borderBottom = "1px solid rgba(255,255,255,0.1)";
+
+                if (p) {
+                    joinedCount++;
+                    const statusColor = p.connected ? 'var(--secondary-color)' : 'red';
+                    const statusText = p.connected ? (p.isReady ? 'Pronto' : 'Conectado') : 'Desconectado';
+                    li.innerHTML = `<strong>${p.name}</strong> - <span style="color:${statusColor}">${statusText}</span>`;
+                } else {
+                    li.textContent = `Aguardando jogador ${i + 1}...`;
+                    li.style.color = "#888";
+                    allReady = false;
+                }
+                this.lobbyPlayersList.appendChild(li);
+            }
+            
+            this.lobbyCount.textContent = joinedCount;
+            this.lobbyTotal.textContent = data.config.humans;
+            
+            if (Network.isHost) {
+                this.btnStartMultiplayer.disabled = !allReady || joinedCount < data.config.humans;
+            } else {
+                this.btnStartMultiplayer.style.display = 'none';
+            }
+        } else if (data.state === 'playing') {
+            if (this.gameScreen.classList.contains('hide')) {
+                // Everyone goes to game screen
+                this.showScreen(this.gameScreen);
+                this.logList.innerHTML = '';
+            }
+            this.game.syncNetwork(data);
+        }
     }
 
     addLog(msg, type) {
@@ -92,8 +213,10 @@ class UI {
         this.processingRound = false;
         const p = this.game.players[playerIndex];
         const turnTextEl = document.getElementById('turn-text');
+        
+        const myId = this.game.isMultiplayer ? Network.playerId : 0;
 
-        if (playerIndex === 0) {
+        if (playerIndex === myId) {
             turnTextEl.textContent = '';
             this.currentPlayerName.textContent = 'Sua vez';
         } else {
@@ -114,12 +237,13 @@ class UI {
         }
 
         // Render card
-        const p1 = this.game.players[0];
+        const myId = this.game.isMultiplayer ? Network.playerId : 0;
+        const me = this.game.players[myId];
         this.p1CardContainer.innerHTML = '';
-        if (p1.deck.length > 0) {
-            const isUserTurn = (this.game.currentPlayerIndex === 0);
-            const cardEl = this.createCardElement(p1.deck[0], isUserTurn);
-            if (!isUserTurn) {
+        if (me && me.deck.length > 0) {
+            const isMyTurn = (this.game.currentPlayerIndex === myId);
+            const cardEl = this.createCardElement(me.deck[0], isMyTurn);
+            if (!isMyTurn) {
                 cardEl.classList.add('inactive-card');
             }
             this.p1CardContainer.appendChild(cardEl);
@@ -147,8 +271,8 @@ class UI {
             div.className = `player-stat glass-panel ${player.deck.length === 0 ? 'eliminated' : ''} ${this.game.currentPlayerIndex === player.id ? 'highlight-box' : ''}`;
             div.setAttribute('data-id', player.id);
 
-            const isUser = (player.id === 0);
-            const color = isUser ? 'var(--secondary-color)' : 'white';
+            const isMe = (player.id === (this.game.isMultiplayer ? Network.playerId : 0));
+            const color = isMe ? 'var(--secondary-color)' : 'white';
 
             // Add a slight glow if it's their turn
             if (this.game.currentPlayerIndex === player.id) {
@@ -230,7 +354,8 @@ class UI {
             const attrs = div.querySelectorAll('.selectable');
             attrs.forEach(attr => {
                 attr.addEventListener('click', (e) => {
-                    if (this.game.currentPlayerIndex !== 0 || !this.game.isRunning || this.processingRound) return;
+                    const myId = this.game.isMultiplayer ? Network.playerId : 0;
+                    if (this.game.currentPlayerIndex !== myId || !this.game.isRunning || this.processingRound) return;
 
                     this.processingRound = true;
                     const clickedEl = e.currentTarget;
@@ -256,11 +381,14 @@ class UI {
         const nameEl = document.getElementById('winner-name');
         const msgEl = document.getElementById('winner-msg');
 
-        nameEl.textContent = winner.id === 0 ? 'VITÓRIA!' : 'DERROTA!';
-        nameEl.style.color = winner.id === 0 ? 'var(--secondary-color)' : 'var(--error-color)';
-        nameEl.style.textShadow = `0 0 10px ${winner.id === 0 ? 'var(--secondary-color)' : 'var(--error-color)'}`;
+        const myId = this.game.isMultiplayer ? Network.playerId : 0;
+        const isMe = winner.id === myId;
 
-        msgEl.textContent = winner.id === 0 ? 'Você venceu o jogo!' : `${winner.name} dominou o jogo!`;
+        nameEl.textContent = isMe ? 'VITÓRIA!' : 'DERROTA!';
+        nameEl.style.color = isMe ? 'var(--secondary-color)' : 'var(--error-color)';
+        nameEl.style.textShadow = `0 0 10px ${isMe ? 'var(--secondary-color)' : 'var(--error-color)'}`;
+
+        msgEl.textContent = isMe ? 'Você venceu o jogo!' : `${winner.name} dominou o jogo!`;
     }
 
     showRoundResult(data) {
@@ -292,14 +420,14 @@ class UI {
                 valText = this.formatPropValue(entry.card.properties[propertyKey], propData);
             }
 
-            const isUser = (entry.playerIndex === 0);
-            const nameColor = isUser ? 'var(--secondary-color)' : 'white';
+            const isMe = (entry.playerIndex === (this.game.isMultiplayer ? Network.playerId : 0));
+            const nameColor = isMe ? 'var(--secondary-color)' : 'white';
 
             div.innerHTML = `
                 <div style="display:flex; align-items:center; gap: 15px;">
                     <img src="${entry.card.image}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" style="width: 40px; height: 40px; object-fit: cover; border-radius: 8px; flex-shrink: 0; background: #333;">
                     <div style="display: none; width: 40px; height: 40px; border-radius: 8px; flex-shrink: 0; background: rgba(255,255,255,0.1); align-items: center; justify-content: center; font-size: 1.2rem;">${entry.card.superTrunfo ? '⚡' : '😀'}</div>
-                    <span class="result-item-name" style="margin: 0; color: ${nameColor};">${isUser ? 'Você' : player.name} <br><small style="font-weight:normal;color:#ccc">${entry.card.name} (${entry.card.category})</small></span>
+                    <span class="result-item-name" style="margin: 0; color: ${nameColor};">${isMe ? 'Você' : player.name} <br><small style="font-weight:normal;color:#ccc">${entry.card.name} (${entry.card.category})</small></span>
                 </div>
                 <span class="result-item-value" style="display:flex; align-items:center;">${valText}</span>
             `;

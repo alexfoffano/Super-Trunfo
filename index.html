@@ -27,11 +27,18 @@
             <h2 class="title-small">CONFIGURAÇÃO DA PARTIDA</h2>
             <div class="setup-form glass-panel">
                 <div class="form-group">
-                    <label for="player-count">Número de Jogadores (2 a 8):</label>
-                    <input type="number" id="player-count" min="2" max="8" value="2">
+                    <label for="player-name">Seu Nome:</label>
+                    <input type="text" id="player-name" value="Você" maxlength="20">
                 </div>
-                <p class="bot-info">Você será o <strong>Jogador 1</strong>. Os demais jogadores serão controlados pelo
-                    bot.</p>
+                <div class="form-group">
+                    <label for="human-count">Número de Jogadores (<span id="human-val">2</span> humanos):</label>
+                    <input type="range" id="human-count" min="1" max="8" value="2">
+                </div>
+                <div class="form-group">
+                    <label for="bot-count">Número de Bots (<span id="bot-val">0</span>):</label>
+                    <input type="range" id="bot-count" min="0" max="7" value="0">
+                </div>
+                <p class="bot-info">Mínimo de 2 e máximo de 8 jogadores no total. Se jogar apenas com 1 humano, a partida será single-player.</p>
                 <div class="form-group deck-selection">
                     <label>Baralho:</label>
                     <select id="deck-select">
@@ -41,7 +48,38 @@
                         <option value="template">Novo Baralho (Template)</option>
                     </select>
                 </div>
-                <button id="btn-start" class="primary-btn">INICIAR PARTIDA</button>
+                <button id="btn-start-setup" class="primary-btn">CRIAR SALA/JOGAR</button>
+            </div>
+        </section>
+
+        <!-- Lobby Screen -->
+        <section id="lobby-screen" class="screen hide">
+            <h2 class="title-small">SALA DE ESPERA</h2>
+            <div class="setup-form glass-panel" style="text-align: center;">
+                <p>Convide seus amigos enviando o link abaixo:</p>
+                <div class="invite-link-box" style="display:flex; margin-bottom: 20px; gap: 10px;">
+                    <input type="text" id="invite-link" readonly style="flex:1;">
+                    <button id="btn-copy-link" style="padding: 10px; cursor:pointer;" title="Copiar">📋</button>
+                </div>
+
+                <h3 style="margin-bottom: 10px; color: var(--secondary-color);">Jogadores na Sala (<span id="lobby-count">1</span>/<span id="lobby-total">1</span> humanos)</h3>
+                <ul id="lobby-players-list" style="list-style: none; padding: 0; margin-bottom: 20px; text-align: left; max-height: 200px; overflow-y:auto;">
+                    <!-- Player items will appear here -->
+                </ul>
+
+                <button id="btn-start-multiplayer" class="primary-btn" disabled>INICIAR JOGO</button>
+            </div>
+        </section>
+
+        <!-- Join Screen -->
+        <section id="join-screen" class="screen hide">
+            <h2 class="title-small">ENTRAR NA SALA</h2>
+            <div class="setup-form glass-panel">
+                <div class="form-group">
+                    <label for="join-name">Seu Nome:</label>
+                    <input type="text" id="join-name" value="" placeholder="Digite seu nome" maxlength="20">
+                </div>
+                <button id="btn-join-room" class="primary-btn">ENTRAR</button>
             </div>
         </section>
 
@@ -95,12 +133,17 @@
         </section>
     </div>
 
+    <!-- Firebase (Compat v8 layout) -->
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-database-compat.js"></script>
+
     <!-- Scripts -->
     <script src="decks/cars/cars.js"></script>
     <script src="decks/brasilidades/brasilidades.js"></script>
     <script src="decks/template/template.js"></script>
     <script src="decks/pokemon/pokemon.js"></script>
     <script src="cards.js"></script>
+    <script src="network.js"></script>
     <script src="game.js"></script>
     <script src="ui.js"></script>
     <script src="main.js"></script>
