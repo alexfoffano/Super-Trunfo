@@ -282,7 +282,7 @@ class UI {
             }
 
             div.innerHTML = `
-                <h4 style="color: ${color};">${isUser ? 'Você' : player.name}</h4>
+                <h4 style="color: ${color};">${isMe ? 'Você' : player.name}</h4>
                 <span><span class="card-counter">${player.deck.length}</span> Cartas</span>
             `;
             this.playersContainer.appendChild(div);
