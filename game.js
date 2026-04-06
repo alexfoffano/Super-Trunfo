@@ -106,20 +106,38 @@ class Game {
 
         // Check for Super Trunfo
         let superTrunfoEntry = currentRoundCards.find(c => c.card.superTrunfo);
-        let categoryAEntry = currentRoundCards.find(c => c.card.category.endsWith('-A'));
+        let categoryAEntries = currentRoundCards.filter(c => c.card.category.endsWith('-A'));
 
         let winnerIndex = -1;
         let isTie = false;
         let tiedPlayers = [];
 
-        if (superTrunfoEntry && !categoryAEntry) {
+        if (superTrunfoEntry && categoryAEntries.length === 0) {
             // Super trunfo wins instantly except against A
             winnerIndex = superTrunfoEntry.playerIndex;
             this.log(`Super Trunfo (${superTrunfoEntry.card.name}) venceu a rodada!`, "st");
-        } else if (superTrunfoEntry && categoryAEntry) {
-            // A wins against ST
-            winnerIndex = categoryAEntry.playerIndex;
-            this.log(`O final -A (${categoryAEntry.card.name}) superou o Super Trunfo!`, "st");
+        } else if (superTrunfoEntry && categoryAEntries.length > 0) {
+            // A wins against ST. Multiple A cards compete against each other.
+            let highestVal = -Infinity;
+            
+            for (let entry of categoryAEntries) {
+                let val = entry.card.properties[propertyKey];
+                if (val > highestVal) {
+                    highestVal = val;
+                    winnerIndex = entry.playerIndex;
+                    tiedPlayers = [entry.playerIndex];
+                } else if (val === highestVal) {
+                    tiedPlayers.push(entry.playerIndex);
+                }
+            }
+
+            if (tiedPlayers.length > 1) {
+                isTie = true;
+                this.log(`As cartas com final -A empataram e superaram o Super Trunfo!`, "st");
+            } else {
+                let winningEntry = categoryAEntries.find(e => e.playerIndex === winnerIndex);
+                this.log(`O final -A (${winningEntry.card.name}) superou o Super Trunfo com maior ${propLabel}!`, "st");
+            }
         } else {
             // Normal battle (Highest wins)
             let highestVal = -Infinity;
