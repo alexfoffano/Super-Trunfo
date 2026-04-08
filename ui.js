@@ -79,8 +79,33 @@ class UI {
 
         this.btnPlay.addEventListener('click', () => this.showScreen(this.setupScreen));
 
-        this.humanCount.addEventListener('input', (e) => this.humanVal.textContent = e.target.value);
-        this.botCount.addEventListener('input', (e) => this.botVal.textContent = e.target.value);
+        this.humanCount.addEventListener('input', (e) => {
+            let h = parseInt(this.humanCount.value);
+            let b = parseInt(this.botCount.value);
+            if (h + b > 8) {
+                b = 8 - h;
+                this.botCount.value = b;
+            } else if (h + b < 2) {
+                b = 2 - h;
+                this.botCount.value = b;
+            }
+            this.humanVal.textContent = h;
+            this.botVal.textContent = b;
+        });
+
+        this.botCount.addEventListener('input', (e) => {
+            let h = parseInt(this.humanCount.value);
+            let b = parseInt(this.botCount.value);
+            if (h + b > 8) {
+                h = 8 - b;
+                this.humanCount.value = h;
+            } else if (h + b < 2) {
+                h = 2 - b;
+                this.humanCount.value = h;
+            }
+            this.humanVal.textContent = h;
+            this.botVal.textContent = b;
+        });
 
         this.btnStartSetup.addEventListener('click', () => {
             const h = parseInt(this.humanCount.value);
@@ -99,8 +124,8 @@ class UI {
                 deckKey: this.deckSelect.value
             };
             
-            if (h === 1) {
-                // Singleplayer Local (no room created)
+            if (h <= 1) {
+                // Singleplayer Local or Spectator (no room created)
                 this.showScreen(this.gameScreen);
                 this.logList.innerHTML = '';
                 this.game.initLocal(config);
@@ -282,7 +307,7 @@ class UI {
         const me = this.game.players[myId];
         this.p1CardContainer.innerHTML = '';
         if (me && me.deck.length > 0) {
-            const isMyTurn = (this.game.currentPlayerIndex === myId);
+            const isMyTurn = (this.game.currentPlayerIndex === myId && !me.isBot);
             const cardEl = this.createCardElement(me.deck[0], isMyTurn);
             if (!isMyTurn) {
                 cardEl.classList.add('inactive-card');
@@ -312,7 +337,7 @@ class UI {
             div.className = `player-stat glass-panel ${player.deck.length === 0 ? 'eliminated' : ''} ${this.game.currentPlayerIndex === player.id ? 'highlight-box' : ''}`;
             div.setAttribute('data-id', player.id);
 
-            const isMe = (player.id === (this.game.isMultiplayer ? Network.playerId : 0));
+            const isMe = (player.id === (this.game.isMultiplayer ? Network.playerId : 0) && !player.isBot);
             const color = isMe ? 'var(--secondary-color)' : 'white';
 
             // Add a slight glow if it's their turn
@@ -423,9 +448,10 @@ class UI {
         const msgEl = document.getElementById('winner-msg');
 
         const myId = this.game.isMultiplayer ? Network.playerId : 0;
-        const isMe = winner.id === myId;
+        const winnerPlayer = this.game.players[winner.id];
+        const isMe = (winner.id === myId && winnerPlayer && !winnerPlayer.isBot);
 
-        nameEl.textContent = isMe ? 'VITÓRIA!' : 'DERROTA!';
+        nameEl.textContent = isMe ? 'VITÓRIA!' : (winnerPlayer && winnerPlayer.isBot ? 'FIM DE JOGO!' : 'DERROTA!');
         nameEl.style.color = isMe ? 'var(--secondary-color)' : 'var(--error-color)';
         nameEl.style.textShadow = `0 0 10px ${isMe ? 'var(--secondary-color)' : 'var(--error-color)'}`;
 
@@ -461,14 +487,15 @@ class UI {
                 valText = this.formatPropValue(entry.card.properties[propertyKey], propData);
             }
 
-            const isMe = (entry.playerIndex === (this.game.isMultiplayer ? Network.playerId : 0));
-            const nameColor = isMe ? 'var(--secondary-color)' : 'white';
+            const myId = (this.game.isMultiplayer ? Network.playerId : 0);
+            const isMe = (entry.playerIndex === myId && player && !player.isBot);
+            const color = isMe ? 'var(--secondary-color)' : 'white';
 
             div.innerHTML = `
                 <div style="display:flex; align-items:center; gap: 15px;">
                     <img src="${entry.card.image}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" style="width: 40px; height: 40px; object-fit: cover; border-radius: 8px; flex-shrink: 0; background: #333;">
                     <div style="display: none; width: 40px; height: 40px; border-radius: 8px; flex-shrink: 0; background: rgba(255,255,255,0.1); align-items: center; justify-content: center; font-size: 1.2rem;">${entry.card.superTrunfo ? '⚡' : '😀'}</div>
-                    <span class="result-item-name" style="margin: 0; color: ${nameColor};">${isMe ? 'Você' : player.name} <br><small style="font-weight:normal;color:#ccc">${entry.card.name} (${entry.card.category})</small></span>
+                    <span class="result-item-name" style="margin: 0; color: ${color};">${isMe ? 'Você' : player.name} <br><small style="font-weight:normal;color:#ccc">${entry.card.name} (${entry.card.category})</small></span>
                 </div>
                 <span class="result-item-value" style="display:flex; align-items:center;">${valText}</span>
             `;

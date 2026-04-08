@@ -45,7 +45,7 @@ window.DECK_BRASILIDADES = {
         { id: "9-A", name: "Chinelo de Dedo", category: "9-A", superTrunfo: false, properties: { price: 19.90, design: 80, utility: 100, durability: 58, cultural: 100, icv: 96 } },
         { id: "9-B", name: "Jogo do Bicho", category: "9-B", superTrunfo: false, properties: { price: 0, design: 48, utility: 82, durability: 34, cultural: 76, icv: 62 } },
         { id: "9-C", name: "Bolo de Cenoura", category: "9-C", superTrunfo: false, properties: { price: 40, design: 100, utility: 94, durability: 10, cultural: 95, icv: 90 } },
-        { id: "9-D", name: "Caldo de Cana", category: "9-D", superTrunfo: false, properties: { price: 5, design: 48, utility: 68, durability: 10, cultural: 76, icv: 33 } },
+        { id: "9-D", name: "Pastel c/ Caldo de Cana", category: "9-D", superTrunfo: false, properties: { price: 5, design: 48, utility: 68, durability: 10, cultural: 76, icv: 33 } },
         { id: "10-A", name: "Urna Eletrônica", category: "10-A", superTrunfo: false, properties: { price: 0, design: 26, utility: 100, durability: 82, cultural: 100, icv: 0 } }
     ]
 };
