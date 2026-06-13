@@ -17,6 +17,10 @@ class UI {
         this.btnCopyLink = document.getElementById('btn-copy-link');
         this.btnJoinRoom = document.getElementById('btn-join-room');
         this.btnRestart = document.getElementById('btn-restart');
+        
+        this.btnBackSetup = document.getElementById('btn-back-setup');
+        this.btnBackLobby = document.getElementById('btn-back-lobby');
+        this.btnBackJoin = document.getElementById('btn-back-join');
 
         // Form
         this.playerName = document.getElementById('player-name');
@@ -154,8 +158,26 @@ class UI {
         window.onNetworkUpdate = (data) => this.handleNetworkState(data);
 
         this.btnRestart.addEventListener('click', () => {
-            this.showScreen(this.setupScreen);
+            window.location.href = window.location.pathname;
         });
+
+        if (this.btnBackSetup) {
+            this.btnBackSetup.addEventListener('click', () => {
+                this.showScreen(this.titleScreen);
+            });
+        }
+
+        if (this.btnBackLobby) {
+            this.btnBackLobby.addEventListener('click', () => {
+                window.location.href = window.location.pathname;
+            });
+        }
+
+        if (this.btnBackJoin) {
+            this.btnBackJoin.addEventListener('click', () => {
+                window.location.href = window.location.pathname;
+            });
+        }
 
         this.btnContinue.addEventListener('click', () => {
             if (this.game.isMultiplayer) {
