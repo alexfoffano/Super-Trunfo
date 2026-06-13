@@ -51,6 +51,7 @@ class UI {
         this.btnContinue = document.getElementById('btn-continue');
 
         this.processingRound = false;
+        this.animatingCard = false;
 
         this.bindEvents();
     }
@@ -312,19 +313,26 @@ class UI {
             this.poolIndicator.classList.add('hide');
         }
 
+        if (!this.game.roundResult) {
+            this.animatingCard = false;
+        }
+
         // Render card
         const myId = this.game.isMultiplayer ? Network.playerId : 0;
         const me = this.game.players[myId];
-        this.p1CardContainer.innerHTML = '';
-        if (me && me.deck.length > 0) {
-            const isMyTurn = (this.game.currentPlayerIndex === myId && !me.isBot);
-            const cardEl = this.createCardElement(me.deck[0], isMyTurn);
-            if (!isMyTurn) {
-                cardEl.classList.add('inactive-card');
+        
+        if (!this.animatingCard) {
+            this.p1CardContainer.innerHTML = '';
+            if (me && me.deck && me.deck.length > 0) {
+                const isMyTurn = (this.game.currentPlayerIndex === myId && !me.isBot);
+                const cardEl = this.createCardElement(me.deck[0], isMyTurn);
+                if (!isMyTurn) {
+                    cardEl.classList.add('inactive-card');
+                }
+                this.p1CardContainer.appendChild(cardEl);
+            } else {
+                this.p1CardContainer.innerHTML = '<div class="st-card back"><p>Sem Cartas</p></div>';
             }
-            this.p1CardContainer.appendChild(cardEl);
-        } else {
-            this.p1CardContainer.innerHTML = '<div class="st-card back"><p>Sem Cartas</p></div>';
         }
 
         // Snapshot previous positions for FLIP
@@ -340,11 +348,16 @@ class UI {
 
         // Render players array
         this.playersContainer.innerHTML = '';
-        const sortedPlayers = [...this.game.players].sort((a, b) => b.deck.length - a.deck.length);
+        const sortedPlayers = [...this.game.players].sort((a, b) => {
+            const aLen = a.deck ? a.deck.length : 0;
+            const bLen = b.deck ? b.deck.length : 0;
+            return bLen - aLen;
+        });
 
         sortedPlayers.forEach(player => {
+            const deckLen = player.deck ? player.deck.length : 0;
             const div = document.createElement('div');
-            div.className = `player-stat glass-panel ${player.deck.length === 0 ? 'eliminated' : ''} ${this.game.currentPlayerIndex === player.id ? 'highlight-box' : ''}`;
+            div.className = `player-stat glass-panel ${deckLen === 0 ? 'eliminated' : ''} ${this.game.currentPlayerIndex === player.id ? 'highlight-box' : ''}`;
             div.setAttribute('data-id', player.id);
 
             const isMe = (player.id === (this.game.isMultiplayer ? Network.playerId : 0) && !player.isBot);
@@ -359,7 +372,7 @@ class UI {
 
             div.innerHTML = `
                 <h4 style="color: ${color};">${isMe ? 'Você' : player.name}</h4>
-                <span><span class="card-counter">${player.deck.length}</span> Cartas</span>
+                <span><span class="card-counter">${deckLen}</span> Cartas</span>
             `;
             this.playersContainer.appendChild(div);
         });
@@ -537,6 +550,8 @@ class UI {
     animateCardTransfer(won, isTie) {
         if (!this.p1CardContainer.firstElementChild) return;
         const cardEl = this.p1CardContainer.firstElementChild;
+        
+        this.animatingCard = true;
 
         if (isTie) {
             cardEl.classList.add('slide-right');
@@ -545,5 +560,10 @@ class UI {
         } else {
             cardEl.classList.add('slide-down');
         }
+        
+        // Safety fallback to unlock animation if state sync fails
+        setTimeout(() => {
+            this.animatingCard = false;
+        }, 1200);
     }
 }

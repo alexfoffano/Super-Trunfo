@@ -135,6 +135,10 @@ class Game {
         }
 
         this.players = state.players || [];
+        this.players.forEach(p => {
+            if (p && !p.deck) p.deck = [];
+        });
+        
         this.currentPlayerIndex = state.currentPlayerIndex;
         this.pool = state.pool || [];
         this.isRunning = state.isRunning;
