@@ -229,7 +229,7 @@ class UI {
                 this.btnStartMultiplayer.style.display = 'none';
             }
         } else if (data.state === 'playing') {
-            if (this.gameScreen.classList.contains('hide')) {
+            if (this.gameScreen.classList.contains('hide') && data.game && data.game.isRunning !== false) {
                 // Everyone goes to game screen
                 this.showScreen(this.gameScreen);
                 this.logList.innerHTML = '';
@@ -243,7 +243,8 @@ class UI {
                 
                 Object.keys(data.players || {}).forEach(key => {
                     const p = data.players[key];
-                    if (p && !p.isBot && p.connected) {
+                    const isAlive = data.game.players && data.game.players[key] && data.game.players[key].deck && data.game.players[key].deck.length > 0;
+                    if (p && !p.isBot && p.connected && isAlive) {
                         totalHumans++;
                         if (data.game.readyNext && data.game.readyNext[key]) {
                             readyCount++;
@@ -258,8 +259,17 @@ class UI {
                         // User hasn't clicked yet, we can optionally show how many others clicked
                         this.btnContinue.textContent = `Continuar (${readyCount}/${totalHumans})`;
                     }
-                    if (readyCount === totalHumans) {
+                    if (readyCount >= totalHumans) {
                          this.hideResultOverlay();
+                         if (!Network.isHost && this.game.roundResult && this.game.onCardTransfer) {
+                             const myId = Network.playerId;
+                             const won = this.game.roundResult.winnerIndex === myId;
+                             const isTie = this.game.roundResult.isTie;
+                             const p1Involved = this.game.roundResult.cards.find(c => c.playerIndex === myId);
+                             if (p1Involved) {
+                                 this.game.onCardTransfer(won, isTie);
+                             }
+                         }
                     }
                 }
             }
@@ -514,7 +524,7 @@ class UI {
         this.btnContinue.disabled = false;
         if (this.game.isMultiplayer) {
             // Count total active humans to initialize the counter
-            let totalHumans = this.game.players.filter(p => !p.isBot).length; // initial estimate
+            let totalHumans = this.game.players.filter(p => !p.isBot && p.deck && p.deck.length > 0).length; // initial estimate
             this.btnContinue.textContent = `Continuar (0/${totalHumans})`;
         } else {
             this.btnContinue.textContent = "Continuar";

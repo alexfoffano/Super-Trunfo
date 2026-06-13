@@ -351,7 +351,8 @@ class Game {
 
                 Object.keys(pMap).forEach(key => {
                     const p = pMap[key];
-                    if (p && !p.isBot && p.connected) {
+                    const isAlive = this.players[key] && this.players[key].deck && this.players[key].deck.length > 0;
+                    if (p && !p.isBot && p.connected && isAlive) {
                         if (!readyMap[key]) {
                             allHumansReady = false;
                         }
