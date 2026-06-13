@@ -151,6 +151,40 @@ h1 {
     }
 }
 
+/* Turn Overlay */
+.turn-overlay {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 200;
+    pointer-events: none;
+    opacity: 0;
+    text-align: center;
+    width: 100%;
+}
+
+.turn-overlay h1 {
+    font-size: clamp(2rem, 8vw, 4rem);
+    font-family: 'Orbitron', sans-serif;
+    margin: 0;
+    text-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+    white-space: normal;
+    padding: 0 20px;
+}
+
+.turn-overlay.show {
+    animation: turnAnim 1.5s ease-in-out forwards;
+}
+
+@keyframes turnAnim {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+    15% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+    25% { transform: translate(-50%, -50%) scale(1); }
+    75% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+}
+
 /* Result Overlay */
 .overlay {
     position: absolute;
@@ -468,7 +502,7 @@ h1 {
 }
 
 .card-title {
-    font-size: 1.2rem;
+    font-size: 1rem;
     font-weight: bold;
     font-family: 'Orbitron', sans-serif;
     color: white;

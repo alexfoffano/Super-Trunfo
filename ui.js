@@ -54,6 +54,11 @@ class UI {
         this.resultList = document.getElementById('round-result-list');
         this.btnContinue = document.getElementById('btn-continue');
 
+        // Turn Overlay
+        this.turnOverlay = document.getElementById('turn-overlay');
+        this.turnOverlayText = document.getElementById('turn-overlay-text');
+        this.previousTurnIndex = -1;
+
         this.processingRound = false;
         this.animatingCard = false;
 
@@ -210,6 +215,9 @@ class UI {
     }
 
     showScreen(screenObj) {
+        if (screenObj === this.gameScreen && this.gameScreen.classList.contains('hide')) {
+            this.previousTurnIndex = -1;
+        }
         [this.titleScreen, this.setupScreen, this.lobbyScreen, this.joinScreen, this.gameScreen, this.endScreen].forEach(s => {
             s.classList.remove('active');
             s.classList.add('hide');
@@ -321,6 +329,24 @@ class UI {
         } else {
             turnTextEl.textContent = 'Vez de ';
             this.currentPlayerName.textContent = p.name;
+        }
+
+        if (this.previousTurnIndex !== playerIndex) {
+            this.previousTurnIndex = playerIndex;
+            
+            this.turnOverlay.classList.remove('show');
+            void this.turnOverlay.offsetWidth;
+            
+            if (playerIndex === myId) {
+                this.turnOverlayText.textContent = "Sua vez de jogar!";
+                this.turnOverlayText.style.color = "#4caf50";
+                this.turnOverlayText.style.textShadow = "0 0 20px #4caf50, 0 0 40px #000";
+            } else {
+                this.turnOverlayText.textContent = `${p.name} está jogando...`;
+                this.turnOverlayText.style.color = "#ff5252";
+                this.turnOverlayText.style.textShadow = "0 0 20px #ff5252, 0 0 40px #000";
+            }
+            this.turnOverlay.classList.add('show');
         }
 
         this.updateGameState();
