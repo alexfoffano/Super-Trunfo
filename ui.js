@@ -372,7 +372,7 @@ class UI {
         if (!this.animatingCard) {
             this.p1CardContainer.innerHTML = '';
             if (me && me.deck && me.deck.length > 0) {
-                const isMyTurn = (this.game.currentPlayerIndex === myId && !me.isBot);
+                const isMyTurn = (this.game.currentPlayerIndex === myId && !me.isBot && this.game.turnActive);
                 const cardEl = this.createCardElement(me.deck[0], isMyTurn);
                 if (!isMyTurn) {
                     cardEl.classList.add('inactive-card');
@@ -492,7 +492,7 @@ class UI {
             attrs.forEach(attr => {
                 attr.addEventListener('click', (e) => {
                     const myId = this.game.isMultiplayer ? Network.playerId : 0;
-                    if (this.game.currentPlayerIndex !== myId || !this.game.isRunning || this.processingRound) return;
+                    if (this.game.currentPlayerIndex !== myId || !this.game.isRunning || this.processingRound || !this.game.turnActive) return;
 
                     this.processingRound = true;
                     const clickedEl = e.currentTarget;

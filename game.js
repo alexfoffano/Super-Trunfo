@@ -73,6 +73,7 @@ class Game {
         this.pool = [];
         this.isRunning = true;
         this.activeDeck = DECKS_MANAGER[deckKey] || DECKS_MANAGER["cars"];
+        this.turnActive = false;
 
         let shuffledDeck = [...this.activeDeck.cards].sort(() => Math.random() - 0.5);
 
@@ -113,7 +114,8 @@ class Game {
             pool: this.pool,
             isRunning: this.isRunning,
             lastLog: this.lastLog || null,
-            roundResult: this.roundResult || null
+            roundResult: this.roundResult || null,
+            turnActive: this.turnActive || false
         };
     }
 
@@ -143,6 +145,7 @@ class Game {
         this.pool = state.pool || [];
         this.isRunning = state.isRunning;
         this.roundResult = state.roundResult;
+        this.turnActive = state.turnActive || false;
 
         if (this.onTurnUpdate) this.onTurnUpdate(this.currentPlayerIndex);
         if (this.onRoundEnd) this.onRoundEnd(); // updates UI
@@ -201,6 +204,8 @@ class Game {
             return;
         }
 
+        this.turnActive = true;
+
         if (this.onTurnUpdate) this.onTurnUpdate(this.currentPlayerIndex);
         this.syncState();
 
@@ -242,6 +247,8 @@ class Game {
 
         // Host logic below
         if (!this.isHost) return;
+
+        this.turnActive = false;
 
         const propLabel = this.activeDeck.properties.find(p => p.key === propertyKey).label;
 
@@ -374,6 +381,7 @@ class Game {
 
     finishRound(roundData) {
         this.roundResult = null;
+        this.turnActive = false;
 
         let cardsPlayed = [];
         this.players.forEach(p => {
