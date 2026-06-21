@@ -29,6 +29,7 @@ class UI {
         this.humanVal = document.getElementById('human-val');
         this.botVal = document.getElementById('bot-val');
         this.deckSelect = document.getElementById('deck-select');
+        this.suddenDeathToggle = document.getElementById('sudden-death');
 
         // Join
         this.joinName = document.getElementById('join-name');
@@ -58,6 +59,8 @@ class UI {
         this.turnOverlay = document.getElementById('turn-overlay');
         this.turnOverlayText = document.getElementById('turn-overlay-text');
         this.previousTurnIndex = -1;
+        this.suddenDeathNotified = false;
+        this.showingSuddenDeath = false;
 
         this.processingRound = false;
         this.animatingCard = false;
@@ -131,7 +134,8 @@ class UI {
                 hostName: this.playerName.value.trim() || 'Você',
                 humans: h,
                 bots: b,
-                deckKey: this.deckSelect.value
+                deckKey: this.deckSelect.value,
+                suddenDeath: this.suddenDeathToggle.checked
             };
             
             if (h <= 1) {
@@ -217,6 +221,8 @@ class UI {
     showScreen(screenObj) {
         if (screenObj === this.gameScreen && this.gameScreen.classList.contains('hide')) {
             this.previousTurnIndex = -1;
+            this.suddenDeathNotified = false;
+            this.showingSuddenDeath = false;
         }
         [this.titleScreen, this.setupScreen, this.lobbyScreen, this.joinScreen, this.gameScreen, this.endScreen].forEach(s => {
             s.classList.remove('active');
@@ -331,22 +337,48 @@ class UI {
             this.currentPlayerName.textContent = p.name;
         }
 
-        if (this.previousTurnIndex !== playerIndex) {
-            this.previousTurnIndex = playerIndex;
+        let delayTurnOverlay = 0;
+        const alivePlayers = this.game.players.filter(pl => pl.deck && pl.deck.length > 0).length;
+        
+        if (this.game.suddenDeath && this.game.players.length >= 3 && alivePlayers === 2 && !this.suddenDeathNotified) {
+            this.suddenDeathNotified = true;
+            this.showingSuddenDeath = true;
             
             this.turnOverlay.classList.remove('show');
             void this.turnOverlay.offsetWidth;
             
-            if (playerIndex === myId) {
-                this.turnOverlayText.textContent = "Sua vez de jogar!";
-                this.turnOverlayText.style.color = "#4caf50";
-                this.turnOverlayText.style.textShadow = "0 0 20px #4caf50, 0 0 40px #000";
-            } else {
-                this.turnOverlayText.textContent = `${p.name} está jogando...`;
-                this.turnOverlayText.style.color = "#ff5252";
-                this.turnOverlayText.style.textShadow = "0 0 20px #ff5252, 0 0 40px #000";
-            }
+            this.turnOverlayText.textContent = "MORTE SÚBITA!";
+            this.turnOverlayText.style.color = "var(--super-trunfo-color)";
+            this.turnOverlayText.style.textShadow = "0 0 20px var(--super-trunfo-color), 0 0 40px #000";
             this.turnOverlay.classList.add('show');
+            
+            delayTurnOverlay = 2000;
+        }
+
+        if (this.previousTurnIndex !== playerIndex || delayTurnOverlay > 0) {
+            this.previousTurnIndex = playerIndex;
+            
+            setTimeout(() => {
+                this.showingSuddenDeath = false;
+                
+                this.turnOverlay.classList.remove('show');
+                void this.turnOverlay.offsetWidth;
+                
+                if (playerIndex === myId) {
+                    this.turnOverlayText.textContent = "Sua vez de jogar!";
+                    this.turnOverlayText.style.color = "#4caf50";
+                    this.turnOverlayText.style.textShadow = "0 0 20px #4caf50, 0 0 40px #000";
+                } else {
+                    this.turnOverlayText.textContent = `${p.name} está jogando...`;
+                    this.turnOverlayText.style.color = "#ff5252";
+                    this.turnOverlayText.style.textShadow = "0 0 20px #ff5252, 0 0 40px #000";
+                }
+                this.turnOverlay.classList.add('show');
+                
+                if (delayTurnOverlay > 0) {
+                    this.updateGameState();
+                }
+            }, delayTurnOverlay);
         }
 
         this.updateGameState();
@@ -372,7 +404,7 @@ class UI {
         if (!this.animatingCard) {
             this.p1CardContainer.innerHTML = '';
             if (me && me.deck && me.deck.length > 0) {
-                const isMyTurn = (this.game.currentPlayerIndex === myId && !me.isBot && this.game.turnActive);
+                const isMyTurn = (this.game.currentPlayerIndex === myId && !me.isBot && this.game.turnActive && !this.showingSuddenDeath);
                 const cardEl = this.createCardElement(me.deck[0], isMyTurn);
                 if (!isMyTurn) {
                     cardEl.classList.add('inactive-card');
@@ -492,7 +524,7 @@ class UI {
             attrs.forEach(attr => {
                 attr.addEventListener('click', (e) => {
                     const myId = this.game.isMultiplayer ? Network.playerId : 0;
-                    if (this.game.currentPlayerIndex !== myId || !this.game.isRunning || this.processingRound || !this.game.turnActive) return;
+                    if (this.game.currentPlayerIndex !== myId || !this.game.isRunning || this.processingRound || !this.game.turnActive || this.showingSuddenDeath) return;
 
                     this.processingRound = true;
                     const clickedEl = e.currentTarget;

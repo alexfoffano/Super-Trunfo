@@ -26,7 +26,8 @@ class Game {
         this.init(config.humans + config.bots, config.deckKey, {
             humans: config.humans,
             bots: config.bots,
-            names: [config.hostName]
+            names: [config.hostName],
+            suddenDeath: config.suddenDeath
         });
     }
 
@@ -45,7 +46,8 @@ class Game {
             this.init(config.totalPlayers, config.deckKey, {
                 humans: config.humans,
                 bots: config.bots,
-                names: names
+                names: names,
+                suddenDeath: config.suddenDeath
             });
         });
 
@@ -74,6 +76,8 @@ class Game {
         this.isRunning = true;
         this.activeDeck = DECKS_MANAGER[deckKey] || DECKS_MANAGER["cars"];
         this.turnActive = false;
+        this.suddenDeath = options.suddenDeath || false;
+        this.suddenDeathActivated = false;
 
         let shuffledDeck = [...this.activeDeck.cards].sort(() => Math.random() - 0.5);
 
@@ -134,6 +138,7 @@ class Game {
             this.isMultiplayer = true;
             this.isHost = false;
             this.activeDeck = DECKS_MANAGER[data.config.deckKey] || DECKS_MANAGER["cars"];
+            this.suddenDeath = data.config.suddenDeath || false;
         }
 
         this.players = state.players || [];
@@ -384,9 +389,11 @@ class Game {
         this.turnActive = false;
 
         let cardsPlayed = [];
-        this.players.forEach(p => {
+        this.players.forEach((p, idx) => {
             if (p.deck && p.deck.length > 0) {
-                cardsPlayed.push(p.deck.shift());
+                let card = p.deck.shift();
+                card._ownerId = idx;
+                cardsPlayed.push(card);
             }
         });
 
@@ -398,13 +405,45 @@ class Game {
         }
 
         setTimeout(() => {
+            let isSuddenDeathActive = (this.suddenDeath && roundData.cards.length === 2);
+
+            if (isSuddenDeathActive && !this.suddenDeathActivated) {
+                this.suddenDeathActivated = true;
+                this.log("Começou a Morte Súbita! As cartas perdedoras são eliminadas da partida!", "tie");
+            }
+
             if (roundData.isTie) {
                 this.log("Empate! As cartas vão para a mesa.", "tie");
                 this.pool.push(...cardsPlayed);
             } else {
                 let winner = this.players[roundData.winnerIndex];
-                winner.deck.push(...cardsPlayed, ...this.pool);
-                this.pool = [];
+
+                if (isSuddenDeathActive) {
+                    let winnerCards = [];
+                    let eliminatedCards = [];
+                    
+                    cardsPlayed.forEach(c => {
+                        if (c._ownerId === roundData.winnerIndex) winnerCards.push(c);
+                        else eliminatedCards.push(c);
+                    });
+                    this.pool.forEach(c => {
+                        if (c._ownerId === roundData.winnerIndex) winnerCards.push(c);
+                        else eliminatedCards.push(c);
+                    });
+                    
+                    if (eliminatedCards.length === 1) {
+                        this.log(`A carta ${eliminatedCards[0].name} foi eliminada do jogo!`, 'tie');
+                    } else if (eliminatedCards.length > 1) {
+                        this.log(`As cartas perdedoras foram eliminadas do jogo!`, 'tie');
+                    }
+                    
+                    winner.deck.push(...winnerCards);
+                    this.pool = [];
+                } else {
+                    winner.deck.push(...cardsPlayed, ...this.pool);
+                    this.pool = [];
+                }
+
                 this.currentPlayerIndex = roundData.winnerIndex;
             }
 
